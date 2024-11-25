@@ -97,6 +97,7 @@ Here's a blank template to get started: To avoid retyping too much info. Do a se
 * [![Python][Python.js]][Python-url]
 * [![Alpaca][Alpaca.js]][Alpaca-url]
 * [![X][X.js]][X-url]
+* [![Discord][Discord.js]][Discord-url]
 * [![Reddit][Reddit.js]][Reddit-url]
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
@@ -246,5 +247,7 @@ Project Link: [https://github.com/JackWagner/social-sentiment-trading](https://g
 [Alpaca-url]: https://alpaca.markets
 [X.js]: https://img.shields.io/badge/X-%23000000.svg?logo=X&logoColor=white
 [X-url]: https://developer.x.com/en
+[Discord.js]: https://img.shields.io/badge/Discord-%235865F2.svg?&logo=discord&logoColor=white
+[Discord-url]: https://discord.com/developers/docs/reference
 [Reddit.js]: https://img.shields.io/badge/Reddit-FF4500?logo=reddit&logoColor=white
 [Reddit-url]: https://www.reddit.com/dev/api/
