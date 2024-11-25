@@ -5,8 +5,8 @@ from alpaca.trading.client import TradingClient
 from alpaca.trading.requests import GetAssetsRequest
 
 # temporary local user config
-homedir      = os.path.expanduser('~')
-alpaca_user_conf = open(os.path.join(homedir,'.ssh/alpaca_paper_user.json'),'r')
+homedir          = os.path.expanduser('~')
+alpaca_user_conf = open(os.path.join(homedir,'.config/alpaca/paper_user.json'),'r')
 alpaca_user      = load(alpaca_user_conf)
 
 # Pass API Key and Secret Key to TradingClient
