@@ -1,10 +1,10 @@
-from strategy import Strategy
+from strategies.sma_crossover import SMA_crossover
 
 # Defining main function
 def main():
-    print("Hello")
-    spy_simple_strat = Strategy("simple strategy", "SPY")
-    print(spy_simple_strat)
+    crossover_strategy = SMA_crossover("spy")
+    print(f'SMA_crossover("spy") object: {crossover_strategy}')
+    crossover_strategy.get_strategy(start="2022-01-01", end="2023-12-31")    
 
 
 # Using the special variable 
