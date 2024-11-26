@@ -16,7 +16,7 @@ class Strategy:
         self.ticker = ticker
 
     def __str__(self):
-        return f"Strategy {self.name} on {self.ticker}"
+        return f"{self.name} strategy on {self.ticker}"
 
     def set_ticker(self, ticker):
         '''Change the ticker without recreating a strategy object'''
