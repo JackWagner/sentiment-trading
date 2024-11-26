@@ -18,13 +18,15 @@ class SMA_crossover(Strategy):
 
     Attributes:
         name (str): Name of the strategy
-        ticker(str): The ticker the strategy determines when to buy/sell on
+        stock (Stock): Stock object for the given ticker
     '''
-    def __init__(self, ticker) -> None:
+    def __init__(self, name, ticker) -> None:
         self.name = 'Simple Moving Average Crossover'
-        self.ticker = ticker
+        self.stock = Stock(ticker)
+        
+        super().__init__(name, ticker)
 
-    def get_strategy(ticker, timeframe = TimeFrame.Day, start = "2023-01-01", end = "2023-12-31", slow_period = 13, fast_period = 5, plot=True):
+    def get_strategy(self, start = "2023-01-01", end = "2023-12-31", timeframe = TimeFrame.Day, slow_period = 13, fast_period = 5, plot = True):
         '''
         Gets strategy dataframe using the SMA crossover rules for a ticker by given timeframe intervals on [start,end].
 
@@ -40,7 +42,12 @@ class SMA_crossover(Strategy):
         returns:
             pandas dataframe: crossover strategy dataframe
         '''
-        data = get_historical_performance_for_ticker(ticker, timeframe, start, end, False)
+
+        # first generate the historical data
+        historical_data = self.stock.get_historical_data(start, end, timeframe)
+
+        # then get performance from historical data
+        data = self.stock.get_performance_data(historical_data)
 
         # Computing the 5-day SMA and 13-day SMA
         data['slow_SMA'] = data[ticker].rolling(slow_period).mean()
