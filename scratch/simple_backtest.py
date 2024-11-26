@@ -31,7 +31,7 @@ end = "2023-12-31"
 
 def get_historical_performance_for_ticker(ticker, timeframe = TimeFrame.Day, start = "2023-01-01", end = "2023-12-31", plot=True):
     """
-    This returns a performance dataframe for a ticker by given timeframe intervals between start and end dates.
+    Gets a performance dataframe for a ticker by given timeframe intervals on [start,end].
     Also generates a line plot by default for this data
 
     params:
@@ -41,7 +41,7 @@ def get_historical_performance_for_ticker(ticker, timeframe = TimeFrame.Day, sta
         end (str): YYYY-MM-DD string when data starts
     
     returns:
-        pandas dataframe: timeframe series is index and values are percent change and daily returns
+        pandas dataframe: historical performance dataframe
     """
     # Creating request object
     try:
@@ -68,26 +68,71 @@ def get_historical_performance_for_ticker(ticker, timeframe = TimeFrame.Day, sta
     data = data.ffill()
 
     # calculate data returns for BTC and SPY
-    data['SPY_daily_return'] = data['SPY'].pct_change()
-    data['SPY_return']       = data['SPY_daily_return'].add(1).cumprod().sub(1)
+    data[f'{ticker}_daily_return'] = data[ticker].pct_change()
+    data[f'{ticker}_return']       = data[f'{ticker}_daily_return'].add(1).cumprod().sub(1)
 
     if plot:
-        fig = px.line(data,x=data.index, y=['SPY_return'])
+        fig = px.line(data,x=data.index, y=[f'{ticker}_return'])
         fig.show()
 
     return data
 
-def backtest_sma(data):
+def get_sma_crossover_strategy(ticker, timeframe = TimeFrame.Day, start = "2023-01-01", end = "2023-12-31", plot=True):
     """
-    This returns a performance dataframe for a ticker by given timeframe intervals between start and end dates.
-    Also generates a line plot by default for this data
+    Gets strategy dataframe using the SMA crossover rules for a ticker by given timeframe intervals on [start,end].
 
     params:
-        data (df): performance data generated via get_historical_performance_for_ticker()
+        ticker (str): ticker for get performance data
+        timeframe (TimeFrame): interval for each point
+        start (str): YYYY-MM-DD string when data starts
+        end (str): YYYY-MM-DD string when data starts
     
     returns:
-
+        pandas dataframe: crossover strategy dataframe
     """
 
+    data = get_historical_performance_for_ticker(ticker, timeframe, start, end, False)
+
+    # periods for our SMA's
+    slow_period = 13
+    fast_period = 5
+
+    # Computing the 5-day SMA and 13-day SMA
+    data['slow_SMA'] = data[ticker].rolling(slow_period).mean()
+    data['fast_SMA'] = data[ticker].rolling(fast_period).mean()
+
+    data.dropna(inplace=True)
+
+    if plot:
+        fig = px.line(data,x=data.index, y=[ticker, 'slow_SMA', 'fast_SMA'])
+        fig.show()
+
+    # Strategy:
+    # calculating when 5-day SMA crosses over 13-day SMA
+    crossover = data[(data['fast_SMA'] > data['slow_SMA']) \
+        & (data['fast_SMA'].shift() < data['slow_SMA'].shift())]
+                        
+    # calculating when 5-day SMA crosses unsw 13-day SMA
+    crossunder = data[(data['fast_SMA'] < data['slow_SMA']) \
+            & (data['fast_SMA'].shift() > data['slow_SMA'].shift())]
+
+    # New column for orders
+    crossover['order'] = 'buy'
+    crossunder['order'] = 'sell'
+
+    # Combine buys and sells into 1 data frame
+    orders = pd.concat([crossover[[ticker, 'order']], crossunder[[ticker,'order']]]).sort_index()
+
+    # new dataframe with market data and orders merged
+    portfolio = pd.merge(data, orders, how='outer', left_index=True, right_index=True)
+
+    return portfolio
 
 spy_performance = get_historical_performance_for_ticker('SPY', timeframe, start, end, True)
+
+spy_sma_crossover_strategy = get_sma_crossover_strategy('SPY', timeframe, start, end, True)
+
+#print(spy_sma_crossover_strategy)
+
+# "backtest" of our buy and hold strategies
+# portfolio[f'{ticker}_buy_&_hold'] = (portfolio[f'{ticker}_return'] + 1) * 10000
