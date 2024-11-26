@@ -30,6 +30,19 @@ start = "2023-01-01"
 end = "2023-12-31"
 
 def get_historical_performance_for_ticker(ticker, timeframe = TimeFrame.Day, start = "2023-01-01", end = "2023-12-31", plot=True):
+    """
+    This returns a performance dataframe for a ticker by given timeframe intervals between start and end dates.
+    Also generates a line plot by default for this data
+
+    params:
+        ticker (str): ticker for get performance data
+        timeframe (TimeFrame): interval for each point
+        start (str): YYYY-MM-DD string when data starts
+        end (str): YYYY-MM-DD string when data starts
+    
+    returns:
+        pandas dataframe: timeframe series is index and values are percent change and daily returns
+    """
     # Creating request object
     try:
         request_params = StockBarsRequest(
@@ -63,6 +76,18 @@ def get_historical_performance_for_ticker(ticker, timeframe = TimeFrame.Day, sta
         fig.show()
 
     return data
+
+def backtest_sma(data):
+    """
+    This returns a performance dataframe for a ticker by given timeframe intervals between start and end dates.
+    Also generates a line plot by default for this data
+
+    params:
+        data (df): performance data generated via get_historical_performance_for_ticker()
+    
+    returns:
+
+    """
 
 
 spy_performance = get_historical_performance_for_ticker('SPY', timeframe, start, end, True)
