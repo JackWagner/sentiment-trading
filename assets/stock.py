@@ -1,5 +1,5 @@
 # Stock is a child of Security
-from security import Security
+from assets.security import Security
 
 # Retrieving stock history
 from alpaca.data.historical import StockHistoricalDataClient

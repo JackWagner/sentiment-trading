@@ -1,5 +1,6 @@
-# Base class
-from strategy import Strategy
+# Required classes
+from strategies.strategy import Strategy
+from assets.stock import Stock
 
 # Alpaca
 from alpaca.data.timeframe import TimeFrame
