@@ -29,8 +29,7 @@ timeframe = TimeFrame.Day
 start = "2023-01-01"
 end = "2023-12-31"
 
-def retrieve_and_plot_pct_change_of_ticker(ticker, timeframe = TimeFrame.Day, start = "2023-01-01", end = "2023-12-31", plot=True):
-
+def get_historical_performance_for_ticker(ticker, timeframe = TimeFrame.Day, start = "2023-01-01", end = "2023-12-31", plot=True):
     # Creating request object
     try:
         request_params = StockBarsRequest(
@@ -63,4 +62,7 @@ def retrieve_and_plot_pct_change_of_ticker(ticker, timeframe = TimeFrame.Day, st
         fig = px.line(data,x=data.index, y=['SPY_return'])
         fig.show()
 
+    return data
 
+
+spy_performance = get_historical_performance_for_ticker('SPY', timeframe, start, end, True)
