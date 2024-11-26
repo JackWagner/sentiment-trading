@@ -5,6 +5,8 @@ from alpaca.data.historical import StockHistoricalDataClient
 from alpaca.data.requests import StockBarsRequest
 from alpaca.data.timeframe import TimeFrame
 
+from datetime import datetime
+
 # dataframe handling
 import pandas as pd
 
@@ -23,11 +25,6 @@ alpaca_user      = load(alpaca_user_conf)
 # No keys required for crypto data
 client = StockHistoricalDataClient(alpaca_user.get("key"), alpaca_user.get("secret"))
 
-# Backtest parameters
-tickers = ["SPY"]
-timeframe = TimeFrame.Day
-start = "2023-01-01"
-end = "2023-12-31"
 
 def get_historical_performance_for_ticker(ticker, timeframe = TimeFrame.Day, start = "2023-01-01", end = "2023-12-31", plot=True):
     """
@@ -38,7 +35,7 @@ def get_historical_performance_for_ticker(ticker, timeframe = TimeFrame.Day, sta
         ticker (str): ticker for get performance data
         timeframe (TimeFrame): interval for each point
         start (str): YYYY-MM-DD string when data starts
-        end (str): YYYY-MM-DD string when data starts
+        end (str): YYYY-MM-DD string when data end
     
     returns:
         pandas dataframe: historical performance dataframe
@@ -85,7 +82,7 @@ def get_sma_crossover_strategy(ticker, timeframe = TimeFrame.Day, start = "2023-
         ticker (str): ticker for get performance data
         timeframe (TimeFrame): interval for each point
         start (str): YYYY-MM-DD string when data starts
-        end (str): YYYY-MM-DD string when data starts
+        end (str): YYYY-MM-DD string when data end
     
     returns:
         pandas dataframe: crossover strategy dataframe
@@ -126,6 +123,18 @@ def get_sma_crossover_strategy(ticker, timeframe = TimeFrame.Day, start = "2023-
     return strategy
 
 def get_backtest(ticker, historical_data, strategy, equity, plot = True):
+    """
+    Gets portfolio for any given ticker, performance of ticker, strategy and portfolio equity
+
+    params:
+        ticker (str): ticker we are backtesting on
+        historical_data (df): historical performance data we are backtesting over
+        strategy (df): strategy data which informs when to buy/sell
+        equity (num): total $ we are using for strategy
+    
+    returns:
+        pandas dataframe: portfolio under strategy and also just buying & holding the ticker
+    """
     # new dataframe with market data and strategy merged
     portfolio = pd.merge(historical_data, strategy, how='outer', left_index=True, right_index=True)
 
@@ -161,6 +170,43 @@ def get_backtest(ticker, historical_data, strategy, equity, plot = True):
 
     return portfolio
 
+def calc_sharpe_ratio(ticker, backtest_portfolio, start_date, end_date):
+    """
+    Calculates the annualized Sharpe ratio for a given backtest portfolio
+
+    params:
+        ticker (str): ticker we backtested on
+        backtest_portfolio (df): backtesting data
+        start_date (str): YYYY-MM-DD string when data starts
+        end_date (str): YYYY-MM-DD string when data end
+    
+    returns:
+        numeric: annualized Sharpe ratio
+    """
+
+    backtest_portfolio['stategy_daily_returns'] = backtest_portfolio['strategy'].pct_change()
+
+    # calculate averages and STD
+    mean_daily_return = backtest_portfolio['stategy_daily_returns'].mean()
+    std_daily_return  = backtest_portfolio['stategy_daily_returns'].std()
+    ticker_mean_daily_return = backtest_portfolio[f'{ticker}_daily_return'].mean()
+
+    # calculate number of trading days
+    start = datetime.strptime(start_date, "%Y-%m-%d").date()
+    end   = datetime.strptime(end_date  , "%Y-%m-%d").date()
+    trading_days = (end - start).days
+
+    daily_sharpe_ratio = (mean_daily_return - ticker_mean_daily_return) / std_daily_return
+
+    # annualized sharpe ratio
+    return daily_sharpe_ratio * (trading_days ** 0.5)
+
+# Backtest parameters
+tickers = ["SPY"]
+timeframe = TimeFrame.Day
+start = "2023-01-01"
+end = "2023-12-31"
+
 spy_performance = get_historical_performance_for_ticker('SPY', timeframe, start, end, False)
 
 spy_sma_crossover_strategy = get_sma_crossover_strategy('SPY', timeframe, start, end, False)
@@ -168,3 +214,7 @@ spy_sma_crossover_strategy = get_sma_crossover_strategy('SPY', timeframe, start,
 spy_sma_crossover_backtest = get_backtest('SPY', spy_performance, spy_sma_crossover_strategy, 10000)
 
 print(spy_sma_crossover_backtest)
+
+sharpe_ratio = calc_sharpe_ratio('SPY',spy_sma_crossover_backtest, start, end)
+
+print(f"Annualized sharpe ratio:{sharpe_ratio}")
