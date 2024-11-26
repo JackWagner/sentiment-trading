@@ -1,3 +1,7 @@
+# load environment variables
+from os import path
+from json import load
+
 # Stock is a child of Security
 from assets.security import Security
 
@@ -10,8 +14,8 @@ from alpaca.data.timeframe import TimeFrame
 import plotly.express as px
 
 # temporary local user config
-homedir          = os.path.expanduser('~')
-alpaca_user_conf = open(os.path.join(homedir,'.config/alpaca/paper_user.json'),'r')
+homedir          = path.expanduser('~')
+alpaca_user_conf = open(path.join(homedir,'.config/alpaca/paper_user.json'),'r')
 alpaca_user      = load(alpaca_user_conf)
 
 # No keys required for crypto data

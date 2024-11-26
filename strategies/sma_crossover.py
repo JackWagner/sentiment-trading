@@ -20,11 +20,11 @@ class SMA_crossover(Strategy):
         name (str): Name of the strategy
         stock (Stock): Stock object for the given ticker
     '''
-    def __init__(self, name, ticker) -> None:
+    def __init__(self, ticker) -> None:
         self.name = 'Simple Moving Average Crossover'
         self.stock = Stock(ticker)
-        
-        super().__init__(name, ticker)
+
+        super().__init__(self.name, ticker)
 
     def get_strategy(self, start = "2023-01-01", end = "2023-12-31", timeframe = TimeFrame.Day, slow_period = 13, fast_period = 5, plot = True):
         '''

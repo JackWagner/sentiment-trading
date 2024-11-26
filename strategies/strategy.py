@@ -1,5 +1,3 @@
-from logging import logger
-
 class Strategy:
     '''
     The Strategy object determines when to buy/sell given real-time or historical data by some rule set.
