@@ -32,6 +32,9 @@ class SMA_crossover(Strategy):
             timeframe (TimeFrame): interval for each point
             start (str): YYYY-MM-DD string when data starts
             end (str): YYYY-MM-DD string when data end
+            slow_period (int): number of days of long-term trend window
+            fast_period (int): number of days of short-term trend window
+            plot (bool): Whether or not to generate strategy figure
         
         returns:
             pandas dataframe: crossover strategy dataframe
