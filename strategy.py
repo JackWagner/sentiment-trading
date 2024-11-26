@@ -2,7 +2,8 @@ from logging import logger
 
 class Strategy:
     '''
-    The Strategy object determines when to buy/sell given real-time or historical data by some rule set
+    The Strategy object determines when to buy/sell given real-time or historical data by some rule set.
+    The passed ticker need not be used in the rule set, it is the asset which is bought/sold in the backtest. 
 
     Args:
         name (str): Name of the strategy
@@ -31,5 +32,5 @@ class Strategy:
         return self.ticker
     
     def get_backtest_df(self):
-        print("No strategy defined in base class Strategy")
+        print("No strategy to backtest with in the base class Strategy")
         pass
