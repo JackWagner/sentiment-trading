@@ -35,6 +35,7 @@ class Stock(Security):
     '''
     def __init__(self, ticker: str, mid: str = 'XNYS') -> None:
         self.mid = mid
+
         super().__init__(ticker)
 
     def __str__(self):
@@ -78,7 +79,7 @@ class Stock(Security):
         """
 
         # Filter down to closing price
-        data = data.filter(['close'])
+        data = historical_data.filter(['close'])
 
         # remove multi-index, set to date
         data.reset_index(inplace=True)
@@ -88,7 +89,7 @@ class Stock(Security):
 
         # calculate daily and cumulative returns on stock
         data[f'daily_return'] = data['close'].pct_change()
-        data[f'total_return']       = data[f'daily_return'].add(1).cumprod().sub(1)
+        data[f'total_return'] = data[f'daily_return'].add(1).cumprod().sub(1)
 
         return data
 
