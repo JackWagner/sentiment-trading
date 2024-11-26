@@ -121,18 +121,50 @@ def get_sma_crossover_strategy(ticker, timeframe = TimeFrame.Day, start = "2023-
     crossunder['order'] = 'sell'
 
     # Combine buys and sells into 1 data frame
-    orders = pd.concat([crossover[[ticker, 'order']], crossunder[[ticker,'order']]]).sort_index()
+    strategy = pd.concat([crossover[[ticker, 'order']], crossunder[[ticker,'order']]]).sort_index()
 
-    # new dataframe with market data and orders merged
-    portfolio = pd.merge(data, orders, how='outer', left_index=True, right_index=True)
+    return strategy
+
+def get_backtest(ticker, historical_data, strategy, equity, plot = True):
+    # new dataframe with market data and strategy merged
+    portfolio = pd.merge(historical_data, strategy, how='outer', left_index=True, right_index=True)
+
+    # "backtest" of our buy and hold strategies
+    portfolio[f'{ticker}_buy_&_hold'] = (portfolio[f'{ticker}_return'] + 1) * equity
+
+    # forward fill any missing data points in our buy & hold strategies 
+    # and forward fill BTC_daily_return for missing data points
+    portfolio[[f'{ticker}_buy_&_hold']] = portfolio[[f'{ticker}_buy_&_hold']].ffill()
+
+    ### Begin backtest
+    active_position = False
+
+    # Iterate row by row of our historical data
+    for index, row in portfolio.iterrows():
+        
+        # change state of position
+        if row['order'] == 'buy':
+            active_position = True
+        elif row['order'] == 'sell':
+            active_position = False
+        
+        # update strategy equity
+        if active_position:
+            portfolio.loc[index, f'strategy'] = (row[f'{ticker}_daily_return'] + 1) * equity
+            equity = portfolio.loc[index, f'strategy']
+        else:
+            portfolio.loc[index, f'strategy'] = equity
+
+    if plot:
+        fig = px.line(portfolio[['strategy', f'{ticker}_buy_&_hold']])
+        fig.show()
 
     return portfolio
 
-spy_performance = get_historical_performance_for_ticker('SPY', timeframe, start, end, True)
+spy_performance = get_historical_performance_for_ticker('SPY', timeframe, start, end, False)
 
-spy_sma_crossover_strategy = get_sma_crossover_strategy('SPY', timeframe, start, end, True)
+spy_sma_crossover_strategy = get_sma_crossover_strategy('SPY', timeframe, start, end, False)
 
-#print(spy_sma_crossover_strategy)
+spy_sma_crossover_backtest = get_backtest('SPY', spy_performance, spy_sma_crossover_strategy, 10000)
 
-# "backtest" of our buy and hold strategies
-# portfolio[f'{ticker}_buy_&_hold'] = (portfolio[f'{ticker}_return'] + 1) * 10000
+print(spy_sma_crossover_backtest)
