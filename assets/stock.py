@@ -35,6 +35,7 @@ class Stock(Security):
     '''
     def __init__(self, ticker: str, mid: str = 'XNYS') -> None:
         self.mid = mid
+        super().__init__(ticker)
 
     def __str__(self):
         return f"Stock with ticker {self.ticker} in market {self.mid}"
