@@ -45,11 +45,8 @@ class SMA_crossover(Strategy):
             pandas dataframe: crossover strategy dataframe
         '''
 
-        # first generate the historical data
-        historical_data = self.stock.get_historical_data(start, end, timeframe)
-
-        # then get performance from historical data
-        data = self.stock.get_performance_data(historical_data)
+        # Get performance data
+        data = self.stock.get_performance_data(start, end, timeframe)
 
         # Computing the 5-day SMA and 13-day SMA
         data['slow_SMA'] = data['close'].rolling(slow_period).mean()
@@ -93,3 +90,55 @@ class SMA_crossover(Strategy):
             fig.show()
 
         return strategy
+
+    def get_backtest(self, start = "2023-01-01", end = "2023-12-31", timeframe = TimeFrame.Day, slow_period = 13, fast_period = 5, equity = 10000, plot = True):
+        """
+        Gets portfolio using SME crossover strategy for a ticker by given timeframe intervals on [start,end].
+
+        params:
+            start (str): YYYY-MM-DD string when data starts
+            end (str): YYYY-MM-DD string when data end
+            timeframe (TimeFrame): interval for each point
+            equity (num): total $ we are using for strategy
+            plot (bool): Whether or not to generate backtest figure
+        
+        returns:
+            pandas dataframe: portfolio under strategy and also just buying & holding the asset
+        """
+
+        performance_df = self.stock.get_performance_data(start, end, timeframe)
+        strategy_df    = self.get_strategy(start, end, timeframe, slow_period, fast_period, plot)
+
+        # new dataframe with market data and strategy merged
+        portfolio = pd.merge(performance_df, strategy_df, how='outer', left_index=True, right_index=True)
+
+        # "backtest" of our buy and hold strategies
+        portfolio['buy_&_hold'] = (portfolio['total_return'] + 1) * equity
+
+        # forward fill any missing data points in our buy & hold strategies 
+        portfolio[['buy_&_hold']] = portfolio[['buy_&_hold']].ffill()
+
+        ### Begin backtest
+        active_position = False
+
+        # Iterate row by row of our historical data
+        for index, row in portfolio.iterrows():
+            
+            # change state of position
+            if   row['order'] == 'buy':
+                active_position = True
+            elif row['order'] == 'sell':
+                active_position = False
+            
+            # update strategy equity
+            if active_position:
+                portfolio.loc[index, 'strategy'] = (row['daily_return'] + 1) * equity
+                equity = portfolio.loc[index, f'strategy']
+            else:
+                portfolio.loc[index, 'strategy'] = equity
+
+        if plot:
+            fig = px.line(portfolio[['strategy', 'buy_&_hold']], title = f"Backtest of {str(self)}")
+            fig.show()
+
+        return portfolio

@@ -28,7 +28,3 @@ class Strategy:
     
     def get_ticker(self):
         return self.ticker
-    
-    def get_backtest_df(self):
-        print("No strategy to backtest with in the base class Strategy")
-        pass
