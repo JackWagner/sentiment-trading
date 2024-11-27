@@ -67,16 +67,21 @@ class Stock(Security):
 
         return result
 
-    def get_performance_data(self, historical_data):
+    def get_performance_data(self, start_date, end_date, timeframe = TimeFrame.Day):
         """
-        Returns a stocks performance over some historical dataframe.
+        Returns a stocks performance by given timeframe intervals on [start,end].
 
         params:
-            historical_date (df): dataframe produced by get_historical_data()
+            start (str): YYYY-MM-DD string when data starts
+            end (str): YYYY-MM-DD string when data end
+            timeframe (TimeFrame): interval for each point, default is a day
         
         returns:
             pandas dataframe: historical performance dataframe
         """
+
+        # First get historical stock data on range
+        historical_data = self.get_historical_data(start_date, end_date, timeframe)
 
         # Filter down to closing price
         data = historical_data.filter(['close'])
