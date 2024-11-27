@@ -9,6 +9,9 @@ from alpaca.data.timeframe import TimeFrame
 import plotly.graph_objects as go
 import plotly.express as px
 
+# Pandas
+import pandas as pd
+
 class SMA_crossover(Strategy):
     '''
     The SMA_crossover object determines when to buy/sell from long term and short term trend crossing over/under each other.
@@ -23,7 +26,6 @@ class SMA_crossover(Strategy):
     def __init__(self, ticker) -> None:
         self.name = 'Simple Moving Average Crossover'
         self.stock = Stock(ticker)
-
         super().__init__(self.name, ticker)
 
     def get_strategy(self, start = "2023-01-01", end = "2023-12-31", timeframe = TimeFrame.Day, slow_period = 13, fast_period = 5, plot = True):
@@ -50,8 +52,8 @@ class SMA_crossover(Strategy):
         data = self.stock.get_performance_data(historical_data)
 
         # Computing the 5-day SMA and 13-day SMA
-        data['slow_SMA'] = data[ticker].rolling(slow_period).mean()
-        data['fast_SMA'] = data[ticker].rolling(fast_period).mean()
+        data['slow_SMA'] = data['close'].rolling(slow_period).mean()
+        data['fast_SMA'] = data['close'].rolling(fast_period).mean()
 
         data.dropna(inplace=True)
 
@@ -69,22 +71,25 @@ class SMA_crossover(Strategy):
         crossunder['order'] = 'sell'
 
         # Combine buys and sells into 1 data frame
-        strategy = pd.concat([crossover[[ticker, 'order']], crossunder[[ticker,'order']]]).sort_index()
+        strategy = pd.concat([crossover[['close', 'order']], crossunder[['close','order']]]).sort_index()
 
         if plot:
-            # Plot green upward facing triangles at crossovers
-            fig1 = px.scatter(crossover, x=crossover.index, y='slow_SMA', \
-                            color_discrete_sequence=['green'], symbol_sequence=[49])
 
-            # Plot red downward facing triangles at crossunders
-            fig2 = px.scatter(crossunder, x=crossunder.index, y='fast_SMA', \
-                            color_discrete_sequence=['red'], symbol_sequence=[50])
+            # get both the closing value by interval and strategy
+            plot_data = data.join(strategy['order'])
+
+            print(plot_data)
 
             # Plot slow sma, fast sma and price
-            fig3 = data.plot(y=[ticker, 'fast_SMA', 'slow_SMA'])
+            fig = px.line(x = plot_data.index, y = plot_data['close'], title = str(self))
+            
+            # Plot green upward facing triangles at crossovers
+            fig.add_trace(px.scatter(crossover, x=crossover.index, y='slow_SMA', color_discrete_sequence=['green'], symbol_sequence=[49]).data[0])
 
-            fig4 = go.Figure(data=fig1.data + fig2.data + fig3.data)
-            fig4.update_traces(marker={'size': 13})
-            fig4.show()
+            # Plot red downward facing triangles at crossunders
+            fig.add_trace(px.scatter(crossunder, x=crossunder.index, y='fast_SMA', color_discrete_sequence=['red'], symbol_sequence=[50]).data[0])
+
+            fig.update_traces(marker={'size': 13})
+            fig.show()
 
         return strategy
