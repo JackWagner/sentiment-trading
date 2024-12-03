@@ -25,4 +25,4 @@ class Channel(WebScraper):
         html = self.get_html()
         soup = self.parse_html(html)
         data = self.extract_data(soup)
-        return self.extract_data(soup)
+        return data
