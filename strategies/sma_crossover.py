@@ -142,3 +142,34 @@ class SMA_crossover(Strategy):
             fig.show()
 
         return portfolio
+    
+    def calc_sharpe_ratio(backtest_portfolio, start_date, end_date):
+        """
+        Calculates the annualized Sharpe ratio for a given backtest portfolio
+
+        params:
+            backtest_portfolio (df): portfolio returned from get_backtest()
+            start_date (str): YYYY-MM-DD string when data starts
+            end_date (str): YYYY-MM-DD string when data end
+        
+        returns:
+            numeric: annualized Sharpe ratio
+        """
+
+        backtest_portfolio['stategy_daily_returns']    = backtest_portfolio['strategy'].pct_change()
+        backtest_portfolio['buy_&_hold_daily_returns'] = backtest_portfolio['buy_&_hold'].pct_change()
+
+        # calculate averages and STD
+        mean_daily_return        = backtest_portfolio['stategy_daily_returns'].mean()
+        std_daily_return         = backtest_portfolio['stategy_daily_returns'].std()
+        ticker_mean_daily_return = backtest_portfolio[f'buy_&_hold_daily_returns'].mean()
+
+        # calculate number of trading days
+        start = datetime.strptime(start_date, "%Y-%m-%d").date()
+        end   = datetime.strptime(end_date  , "%Y-%m-%d").date()
+        trading_days = (end - start).days
+
+        daily_sharpe_ratio = (mean_daily_return - ticker_mean_daily_return) / std_daily_return
+
+        # annualized sharpe ratio
+        return daily_sharpe_ratio * (trading_days ** 0.5)
